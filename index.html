@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+    <style>
+        /* POLYGONE STYLE */
+        :root {
+            --primary: #f4b400;
+            --primary-light: #ffce44;
+            --dark: #121212;
+            --light: #f8f9fa;
+            --gray: #666;
+            --poly-gradient: linear-gradient(135deg, #f4b400 0%, #ff8c00 100%);
+            --shadow: 0 15px 35px rgba(0,0,0,0.1);
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background: var(--light); color: var(--dark); line-height: 1.6; overflow-x: hidden; }
+
+        /* NAVBAR  */
+        nav {
+            position: fixed; width: 100%; padding: 20px 8%;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            z-index: 1000; transition: var(--transition);
+        }
+        nav.scrolled { padding: 12px 8%; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--dark); cursor: pointer; letter-spacing: -1px; }
+        .logo span { color: var(--primary); }
+
+        .nav-links { display: flex; list-style: none; gap: 30px; align-items: center; }
+        .nav-links li a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 0.95rem; transition: 0.3s; }
+        .nav-links li a:hover { color: var(--primary); }
+        
+        .btn-download { 
+            background: var(--poly-gradient); color: white !important; 
+            padding: 10px 22px; 
+            border-radius: 50px; 
+            transition: transform 0.3s;
+        }
+        .btn-download:hover { transform: scale(1.05); }
+
+        .burger { display: none; cursor: pointer; }
+        .burger div { width: 25px; height: 3px; background: var(--dark); margin: 5px; transition: 0.3s; }
+
+        /* HERO  */
+        header.hero {
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            background: white; position: relative; overflow: hidden;
+        }
+        header.hero::before {
+            content: ""; position: absolute; top: 0; right: 0;
+            width: 50%; height: 100%; background: var(--primary);
+            clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
+            opacity: 0.05; z-index: 0;
+        }
+
+        .hero h1 { 
+            font-size: clamp(2.8rem, 8vw, 5rem); 
+            z-index: 1; 
+            line-height: 1.1;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        .hero h1 span { color: var(--primary); }
+        
+        .hero p { 
+            font-size: 1.2rem; 
+            color: var(--gray); 
+            z-index: 1; 
+            margin-top: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease 0.2s, transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) 0.2s;
+        }
+
+        .hero.animate h1, .hero.animate p {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* SECTION À PROPOS  */
+        .about-section {
+            padding: 120px 10%;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 60px;
+            align-items: center;
+            background: white;
+        }
+        .about-content h2 { text-align: left; margin-bottom: 20px; }
+        
+        .about-visual {
+            position: relative; 
+            height: 400px;
+            background: var(--poly-gradient);
+            clip-path: polygon(0 10%, 100% 0, 90% 100%, 10% 90%);
+            display: flex; 
+            align-items: center;
+            overflow: hidden; 
+            box-shadow: var(--shadow);
+        }
+
+        .project-scroll-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+        }
+
+        .project-track {
+            display: flex;
+            gap: 30px;
+            animation: scroll 25s linear infinite;
+            padding: 0 20px;
+        }
+
+        .project-track img {
+            width: 380px; 
+            height: 320px; 
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .project-track img:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-380px * 4 - 30px * 4)); }
+        }
+
+        .about-visual:hover .project-track {
+            animation-play-state: paused;
+        }
+
+        /* PROJETS (GRID & SLIDER)  */
+        section#projets { padding: 100px 10%; background: var(--light); position: relative;}
+        h2 { text-align: center; font-size: 2.5rem; margin-bottom: 50px; }
+        h2::after { content: ""; width: 60px; height: 4px; background: var(--primary); display: block; margin: 15px auto 0; }
+
+        .projects-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 40px; 
+            transition: all 0.5s ease;
+        }
+
+        /* style pour le mode Slider */
+        .projects-grid.slider-mode {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 30px;
+            padding: 20px 5px;
+            scroll-behavior: smooth;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .projects-grid.slider-mode::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+        .projects-grid.slider-mode .project-card {
+            min-width: calc(50% - 15px);
+            scroll-snap-align: start;
+            flex-shrink: 0;
+        }
+
+        /* Boutons de navigation */
+        .slider-nav {
+            display: none;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .nav-btn {
+            background: var(--dark);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover { background: var(--primary); transform: scale(1.1); }
+
+        .project-card {
+            background: white; 
+            overflow: hidden; 
+            cursor: pointer; 
+            box-shadow: var(--shadow); 
+            transition: var(--transition);
+            opacity: 0; 
+            transform: translateY(50px) scale(0.95);
+            border-bottom: 4px solid transparent;
+            border-radius: 15px; 
+        }
+
+        .project-card.reveal { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+        }
+
+        .project-card:hover { 
+            border-bottom: 4px solid var(--primary); 
+            transform: translateY(-10px); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .img-container { 
+            width: 100%; 
+            height: 300px; 
+            overflow: hidden; 
+            background: #eee;
+        }
+        
+        .img-container img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); 
+        }
+
+        .project-card:hover .img-container img {
+            transform: scale(1.15); 
+        }
+
+        .project-card h3 { padding: 20px; font-size: 1.2rem; text-align: center; }
+
+        /* MODALE  */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; z-index: 2000;
+            justify-content: center; align-items: center; padding: 20px;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active { opacity: 1; }
+
+        .modal-content {
+            background: white; width: 100%; max-width: 1000px;
+            position: relative; padding: 40px; max-height: 90vh; overflow-y: auto;
+            border-radius: 20px;
+            transform: scale(0.8);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal.active .modal-content { transform: scale(1); }
+
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 2.5rem; border: none; background: none; cursor: pointer; z-index: 10; }
+        
+        .viewer-container {
+            position: relative; width: 100%; min-height: 450px;
+            background: #f0f0f0; border-radius: 12px;
+            overflow: hidden; margin: 15px 0;
+            transition: background 0.5s ease;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .env-switch-container {
+            position: absolute; top: 15px; right: 15px; z-index: 5;
+        }
+
+        .env-checkbox { opacity: 0; position: absolute; }
+
+        .env-label {
+            background-color: #333; 
+            border-radius: 50px; cursor: pointer;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 5px; position: relative;
+            height: 30px; width: 60px;
+            transform: scale(1); transition: background-color 0.4s ease;
+        }
+
+        .env-checkbox:not(:checked) + .env-label {
+            background-color: #bbb;
+        }
+
+        .env-label .ball {
+            background-color: #fff; border-radius: 50%;
+            position: absolute; top: 3px; left: 3px;
+            height: 24px; width: 24px;
+            transform: translateX(0px);
+            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .env-checkbox:checked + .env-label .ball {
+            transform: translateX(30px);
+        }
+
+        .env-label span { font-size: 14px; line-height: 1; user-select: none; }
+        .env-label .sun { color: #f4b400; opacity: 1; transition: opacity 0.3s; }
+        .env-label .moon { color: #f1c40f; opacity: 1; transition: opacity 0.3s; }
+
+        .env-checkbox:checked + .env-label .sun { opacity: 0.2; }
+        .env-checkbox:not(:checked) + .env-label .moon { opacity: 0.2; }
+
+        model-viewer {
+            width: 100%;
+            height: 450px;
+            display: block;
+            outline: none;
+        }
+
+        .tech-tag {
+            background: var(--primary); color: white;
+            padding: 4px 12px; border-radius: 4px;
+            font-size: 0.75rem; font-weight: bold;
+            margin-right: 8px; text-transform: uppercase;
+        }
+
+        .extra-gallery {
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+        }
+
+        .extra-row-dual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .extra-row-dual .extra-item {
+            display: block; 
+        }
+        .extra-row-dual .extra-img {
+            height: 200px;
+        }
+        .extra-row-dual .extra-text {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .extra-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .extra-item:nth-child(even):not(.dual-child) { direction: rtl; }
+        .extra-item:nth-child(even):not(.dual-child) .extra-text { direction: ltr; }
+
+        .extra-img {
+            width: 100%; height: 250px; object-fit: cover;
+            border-radius: 10px; background: #eee;
+            cursor: zoom-in;
+            transition: var(--transition);
+        }
+
+        .extra-img[src*="FLEA"] {
+            object-fit: contain;
+            background: #fff;
+        }
+
+        .extra-img:hover { filter: brightness(0.9); }
+
+        .extra-text { color: var(--gray); font-size: 0.95rem; }
+
+        /* Style pour l'image plein écran */
+        #fullscreen-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.95); z-index:3000;
+            display:none; align-items:center; justify-content:center;
+            cursor: zoom-out;
+        }
+        #fullscreen-overlay img { max-width:95%; max-height:95%; object-fit:contain; }
+
+        @media (max-width: 768px) {
+            .projects-grid { grid-template-columns: 1fr; }
+            .projects-grid.slider-mode .project-card { min-width: 85%; }
+            .extra-item, .extra-row-dual { grid-template-columns: 1fr; }
+            .extra-item:nth-child(even) { direction: ltr; }
+            .nav-links {
+                display: none; position: absolute; top: 70px; left: 0; width: 100%; background: white;
+                flex-direction: column; padding: 40px; box-shadow: 0 10px 10px rgba(0,0,0,0.1);
+            }
+            .nav-links.active { display: flex; }
+            .burger { display: block; }
+            .about-section { grid-template-columns: 1fr; }
+            .about-visual { height: 350px; }
+            .project-track img { width: 250px; height: 200px; }
+        }
+
+        footer { text-align: center; padding: 60px; background: var(--dark); color: white; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">PORT<span>FOLIO</span></div>
+        <ul class="nav-links">
+            <li><a href="#about">À propos</a></li>
+            <li><a href="#projets">Projets</a></li>
+            <li><a href="cv/CV-pc.pdf" download>CV</a></li>
+            <li><a href="portfolio/portfolio.pdf" download class="btn-download">Télécharger PDF</a></li>
+        </ul>
+        <div class="burger" onclick="toggleMenu()">
+            <div></div><div></div><div></div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>PORT<span>FOLIO</span></h1>
+        <p>2025-2026</p>
+    </header>
+
+    <section id="about" class="about-section">
+        <div class="about-content">
+            <h2>À Propos de Moi</h2>
+            <p> De l'idée sur papier jusqu'au rendu final, j'aime
+donner vie à mes projets, j'aime autant la phase
+de réflexion que la mise en pratique. Mon
+parcours mixe la création 3D et la conception
+d'expériences, type immersif. Sur
+mon site j'y documente et centralise tout ce
+que je teste. </p>
+        </div>
+        <div class="about-visual">
+            <div class="project-scroll-container">
+                <div class="project-track">
+                    <img src="images/BT01.png" alt="P1">
+                    <img src="images/SCM1.png" alt="P2">
+                    <img src="images/FCR1.png" alt="P3">
+                    <img src="images/CC1.png" alt="P4">
+                    <img src="images/CCEM2.png" alt="P5">
+                    <img src="images/FLEA.png" alt="P6">
+                    <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=800&q=80" alt="P7">
+                    <img src="images/BT01.png" alt="P1">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="projets">
+        <h2>Mes Réalisations</h2>
+        <div class="projects-grid" id="projectsGrid"></div>
+        <div class="slider-nav" id="sliderNav">
+            <button class="nav-btn" onclick="moveSlider(-1)">❮</button>
+            <button class="nav-btn" onclick="moveSlider(1)">❯</button>
+        </div>
+    </section>
+
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeProject()">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <div id="fullscreen-overlay" onclick="this.style.display='none'">
+        <img src="" id="fullscreen-img">
+    </div>
+
+    <footer>
+        <p>&copy; 2026 - Portfolio </p>
+    </footer>
+
+    <script>
+        const projects = [
+            {
+                id: 'p1',
+                title: "PROJET 1",
+                thumbnail: "images/BT01.png",
+                modalImage: null,
+                modelFile: "models/DB1.glb", 
+                type: "MODÉLISATION 3D",
+                details: [
+                    { label: "Challenge", text: "Réalisation libre d'un design de bouteille en acier, travailler sur son érgonamie et intégrer un visuel, ici mon logo" },
+                    { label: "CAO", text: "Sharpr3D" }
+                ],
+                extraImages: [
+                    { img: "images/BTM.png", desc: "Modélisation" },
+                    { img: "images/BT2.png", desc: "Rendu image" }
+                ]
+            },
+            {
+                id: 'p2',
+                title: "PROJET 2",
+                thumbnail: "images/SCM1.png",
+                modalImage: null, 
+                modelFile: "models/SCM1.glb",
+                type: "MODÉLISATION 3D", 
+                details: [
+                    { label: "Challenge", text: "Concevoir un meuble de rangement robuste et léger (rangement de chaussure), hybride entre la structure imprimé et les tubes métalliques" },
+                    { label: "Matériaux", text: "Tube aluminium Leroy Merlin et structure imprimé PLA" },
+                    { label: "CAO", text: "Sharpr3D" }
+                ],
+                extraImages: []
+            },
+            {
+                id: 'p3',
+                title: "PROJET 3",
+                thumbnail: "images/FCR1.png",
+                modalImage: null,
+                modelFile: "models/FCR1.glb",
+                type: "MODÉLISATION ", 
+                details: [
+                    { label: "Challenge", text: "Libérer de l'espace sur le plan de trvail en fixant l'interface audio directement sous le bureau." },
+                    { label: "Matériaux", text: "Filament PLA" },
+                    { label: "CAO", text: "sharpr3D" }
+                ],
+                extraImages: []
+            },
+            {
+                id: 'p4',
+                title: "PROJET 4",
+                thumbnail: "images/CC1.png",
+                modalImage: null,
+                modelFile: "models/CC.glb",
+                type: "MODÉLISATION ", 
+                details: [
+                    { label: "Challenge", text: "Réaliser un design simple permettant la gestion des câbles de bureau." },
+                    { label: "Matériaux", text: "Filament PLA" },
+                    { label: "CAO", text: "sharpr3D" }
+                ],
+                extraImages: [
+                    { img: "images/CC1.png", desc: "" }]
+            },
+            {
+                id: 'p5',
+                title: "PROJET 5",
+                thumbnail: "images/CCEM2.png",
+                modalImage: null,
+                modelFile: "models/CCE.glb",
+                type: "MODÉLISATION ", 
+                details: [
+                    { label: "Challenge", text: "Masquer les blocs d'alimentation des périphériques de bureau volumineux et les câbles directement sous le bureau" },
+                    { label: "Métériaux", text: "filamment PLA" },
+                    { label: "CAO", text: "logiciel Sharpr3D" }
+                ],
+                extraImages: [
+                    { img: "images/CCEM1.png", desc: "" },
+                    { img: "images/CCEM2.png", desc: "" }]
+            },
+            {
+                id: 'p6',
+                title: "PROJET 6",
+                thumbnail: "images/FLEA.png",
+                modalImage: "images/LP.png",
+                modelFile: null,
+                type: "ART&CULTURE", 
+                details: [
+                    { label: "Conduite de projet", text: "Projet étudiant. https://www.univ-larochelle.fr/luniversite/espace-presse/communiques-de-presse/annee-2026/le-fleaa-mets-les-etudiants-a-laffiche-26e-edition/" },
+                    { label: "Art & Culture", text: "Festival de l'étudiant à l'affiche (FLEA) de La Rochelle. A eu lieu le 25/03/2026" }
+                    
+                ],
+                extraImages: [
+                    { img: "images/FLEA.png", desc: "" },
+                    { img: "images/FLEA2.png", desc: "" }]
+            },
+            {
+                id: 'p7',
+                title: "PROJET 7",
+                thumbnail: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=800&q=80",
+                modalImage: null,
+                modelFile: null,
+                type: "EN COURS", 
+                details: [],
+                extraImages: []
+            }
+        ];
+
+        const grid = document.getElementById('projectsGrid');
+        const sliderNav = document.getElementById('sliderNav');
+
+        if (projects.length > 6) {
+            grid.classList.add('slider-mode');
+            sliderNav.style.display = 'flex';
+        }
+
+        projects.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'project-card';
+            card.onclick = () => openProject(p.id);
+            card.innerHTML = `
+                <div class="img-container"><img src="${p.thumbnail}" alt="${p.title}"></div>
+                <h3>${p.title}</h3>
+            `;
+            grid.appendChild(card);
+        });
+
+        function moveSlider(direction) {
+            const scrollAmount = grid.clientWidth * 0.8;
+            grid.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+        }
+
+        function toggleMenu() { document.querySelector('.nav-links').classList.toggle('active'); }
+
+        // Fonction pour agrandir l'image
+        window.openFullscreen = function(src) {
+            const overlay = document.getElementById('fullscreen-overlay');
+            const fullImg = document.getElementById('fullscreen-img');
+            fullImg.src = src;
+            overlay.style.display = 'flex';
+        }
+
+        window.handleEnvSwitch = function(checkbox) {
+            const container = document.querySelector('.viewer-container');
+            const viewer = document.getElementById('active-viewer');
+            if(!viewer) return;
+
+            if(checkbox.checked) {
+                container.style.background = '#1a1a1a';
+                viewer.setAttribute('environment-image', 'legacy');
+                viewer.setAttribute('exposure', '0.6');
+            } else {
+                container.style.background = '#f0f0f0';
+                viewer.setAttribute('environment-image', 'neutral');
+                viewer.setAttribute('exposure', '1.0');
+            }
+        }
+
+        function openProject(id) {
+            const p = projects.find(item => item.id === id);
+            const modal = document.getElementById('projectModal');
+            const body = document.getElementById('modalBody');
+            
+            const imgToDisplay = p.modalImage ? p.modalImage : p.thumbnail;
+
+            const controls = p.modelFile ? `
+                <div class="env-switch-container">
+                    <input type="checkbox" class="env-checkbox" id="envSwitch" onchange="handleEnvSwitch(this)">
+                    <label class="env-label" for="envSwitch">
+                        <span class="sun">🌕</span>
+                        <span class="moon">🌑</span>
+                        <div class="ball"></div>
+                    </label>
+                </div>
+            ` : '';
+
+            const visual = p.modelFile 
+                ? `${controls}<model-viewer id="active-viewer" src="${p.modelFile}" camera-controls auto-rotate shadow-intensity="1" ar environment-image="neutral"></model-viewer>`
+                : `<img src="${imgToDisplay}" class="viewer-3d" style="height:450px; width:100%; object-fit:contain; display:block;">`;
+
+            let extraHtml = '';
+            if(p.extraImages && p.extraImages.length > 0) {
+                extraHtml = `<div class="extra-gallery">`;
+                
+                if(p.extraImages.length >= 2) {
+                    extraHtml += `<div class="extra-row-dual">`;
+                    for(let i=0; i<2; i++){
+                        const descHtml = p.extraImages[i].desc ? `<div class="extra-text">${p.extraImages[i].desc}</div>` : '';
+                        extraHtml += `
+                            <div class="extra-item dual-child">
+                                <img src="${p.extraImages[i].img}" class="extra-img" alt="Détail" onclick="openFullscreen('${p.extraImages[i].img}')">
+                                ${descHtml}
+                            </div>`;
+                    }
+                    extraHtml += `</div>`;
+                    
+                    for(let i=2; i<p.extraImages.length; i++){
+                        const descHtml = p.extraImages[i].desc ? `<div class="extra-text">${p.extraImages[i].desc}</div>` : '';
+                        extraHtml += `
+                            <div class="extra-item">
+                                <img src="${p.extraImages[i].img}" class="extra-img" alt="Détail" onclick="openFullscreen('${p.extraImages[i].img}')">
+                                ${descHtml}
+                            </div>`;
+                    }
+                } else {
+                    p.extraImages.forEach(item => {
+                        const descHtml = item.desc ? `<div class="extra-text">${item.desc}</div>` : '';
+                        extraHtml += `
+                            <div class="extra-item">
+                                <img src="${item.img}" class="extra-img" alt="Détail" onclick="openFullscreen('${item.img}')">
+                                ${descHtml}
+                            </div>`;
+                    });
+                }
+                extraHtml += `</div>`;
+            }
+
+            let detailsHtml = '';
+            if(p.details && p.details.length > 0) {
+                detailsHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:25px; margin-top:25px;">`;
+                p.details.forEach(det => {
+                    detailsHtml += `<div><h4 style="color:var(--primary); font-size:0.8rem; text-transform:uppercase;">${det.label}</h4><p style="margin-top:5px; color:var(--gray);">${det.text}</p></div>`;
+                });
+                detailsHtml += `</div>`;
+            }
+
+            body.innerHTML = `
+                <div style="margin-bottom:15px">
+                    <span class="tech-tag">Projet</span>
+                    <span class="tech-tag" style="background:#333">${p.type}</span>
+                </div>
+                <h2 style="text-align:left; margin-bottom:10px; border:none;">${p.title}</h2>
+                <div class="viewer-container">${visual}</div>
+                ${detailsHtml}
+                ${extraHtml} `;
+
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            document.body.style.overflow = 'hidden';
+            modal.onclick = (e) => { if(e.target === modal) closeProject(); };
+        }
+
+        function closeProject() {
+            const modal = document.getElementById('projectModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.getElementById('modalBody').innerHTML = ''; 
+                document.body.style.overflow = 'auto';
+            }, 400);
+        }
+
+        const animationObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('reveal');
+                    if(entry.target.classList.contains('hero')) entry.target.classList.add('animate');
+                } else {
+                    if(!grid.classList.contains('slider-mode')) {
+                        entry.target.classList.remove('reveal');
+                    }
+                    if(entry.target.classList.contains('hero')) entry.target.classList.remove('animate');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        setTimeout(() => {
+            document.querySelectorAll('.project-card').forEach(card => animationObserver.observe(card));
+        }, 100);
+        
+        animationObserver.observe(document.querySelector('.hero'));
+
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+    </script>
+</body>
+</html>
